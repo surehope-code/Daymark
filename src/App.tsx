@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
-  ArrowUpRight,
   BookOpen,
   CalendarDays,
   Check,
@@ -22,7 +21,6 @@ import {
   Plus,
   Search,
   Settings,
-  ShieldCheck,
   Sun,
   Trash2,
   Upload,
@@ -42,14 +40,15 @@ import {
   saveData,
   STORAGE_KEY,
   today,
+  thoughtText,
   type Data,
   type Task,
   type Thought,
 } from "./model";
 type Page = "today" | "calendar" | "thoughts" | "settings";
 const nav = [
-  { id: "today" as Page, label: "今日", icon: ListTodo },
   { id: "calendar" as Page, label: "日历", icon: CalendarDays },
+  { id: "today" as Page, label: "今日", icon: ListTodo },
   { id: "thoughts" as Page, label: "思想库", icon: BookOpen },
   { id: "settings" as Page, label: "设置", icon: Settings },
 ];
@@ -68,7 +67,7 @@ export default function App() {
   const [boot] = useState(initial),
     [data, setData] = useState<Data>(boot.data),
     [storageError, setStorageError] = useState(boot.error),
-    [page, setPage] = useState<Page>("today"),
+    [page, setPage] = useState<Page>("calendar"),
     [date, setDate] = useState(today),
     [month, setMonth] = useState(today),
     [taskEditor, setTaskEditor] = useState<Task | "new" | null>(null),
@@ -236,7 +235,7 @@ export default function App() {
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            navigateDate(today());
+            setPage("calendar");
           }}
         >
           <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
@@ -244,7 +243,6 @@ export default function App() {
             Daymark<span className="brand-dot">.</span>
           </span>
         </a>
-        <p className="brand-caption">给每一天，留下印记。</p>
         <div className="nav-label">我的空间</div>
         <nav>
           {nav.map((n) => (
@@ -268,14 +266,6 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-quote">
-            <Leaf size={21} />
-            <p>
-              把注意力放在当下，
-              <br />
-              让小小的行动慢慢生长。
-            </p>
-          </div>
           <div className="local-badge">
             <span className="status-dot" />
             本地工作空间
@@ -290,9 +280,6 @@ export default function App() {
             {nav.find((n) => n.id === page)?.label}
           </span>
           <div className="flex items-center gap-3">
-            <span className="desktop-only text-xs muted">
-              时间有迹，生活有序
-            </span>
             <button
               className="icon"
               aria-label="切换亮暗主题"
@@ -330,14 +317,7 @@ export default function App() {
             <>
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">把时间留给重要的事</div>
-                  <h1>
-                    {date === today()
-                      ? "把今天，过得从容一点。"
-                      : format(parseISO(date), "M 月 d 日", { locale: zhCN }) +
-                        "，一步一步来。"}
-                  </h1>
-                  <p className="muted">不必做完所有事，先做好重要的事。</p>
+                  <h1>每日任务</h1>
                 </div>
                 <button
                   className="primary"
@@ -360,8 +340,7 @@ export default function App() {
                           {date === today() && <b className="tag">今天</b>}
                         </div>
                         <div className="muted text-xs mt-2">
-                          {format(parseISO(date), "yyyy 年")} ·
-                          把计划变成生活的一部分
+                          {format(parseISO(date), "yyyy 年")}
                         </div>
                       </div>
                       <div className="date-controls">
@@ -422,13 +401,6 @@ export default function App() {
                       >
                         <div style={{ width: `${p.percent}%` }} />
                       </div>
-                      <p className="text-xs muted mt-3">
-                        {p.state === "complete"
-                          ? "今天的计划都完成了，给自己一点肯定。"
-                          : p.done
-                            ? "每一步，都算数。继续保持自己的节奏。"
-                            : "新的一天，从一件小事开始。"}
-                      </p>
                     </div>
                     <div className="task-toolbar">
                       <div className="tabs">
@@ -474,7 +446,7 @@ export default function App() {
                         maxLength={200}
                         value={quick}
                         onChange={(e) => setQuick(e.target.value)}
-                        placeholder="添加任务，让今天更有方向…"
+                        placeholder="添加任务"
                       />
                       <button
                         aria-label="添加任务"
@@ -567,31 +539,10 @@ export default function App() {
                             <ListTodo size={28} strokeWidth={1.4} />
                           </div>
                           <h3>
-                            {tasks.length
-                              ? "这里暂时没有任务"
-                              : "留一点空间，给今天的计划"}
+                            {tasks.length ? "没有符合条件的任务" : "暂无任务"}
                           </h3>
-                          <p>
-                            {tasks.length
-                              ? "试试切换上方的任务筛选。"
-                              : "在上方写下第一件事，或安排一段时间的日常。"}
-                          </p>
-                          {!tasks.length && (
-                            <button
-                              className="text-button"
-                              onClick={() => setTaskEditor("new")}
-                            >
-                              安排我的第一件事 <ArrowUpRight size={15} />
-                            </button>
-                          )}
                         </div>
                       )}
-                    </div>
-                    <div className="task-footer">
-                      <ShieldCheck size={14} />
-                      {storageError
-                        ? "本地保存已暂停"
-                        : "每一次勾选，都会即时保存在当前浏览器"}
                     </div>
                   </section>
                   <section className="panel journal">
@@ -606,11 +557,6 @@ export default function App() {
                         </span>
                         <span>
                           <strong>今日记录</strong>
-                          <small>
-                            {data.journals[date]
-                              ? "留住今天，随时续写"
-                              : "心情、收获，或一个小小的瞬间"}
-                          </small>
                         </span>
                       </span>
                       <ChevronDown
@@ -624,7 +570,7 @@ export default function App() {
                           aria-label="今日记录"
                           rows={6}
                           maxLength={50000}
-                          placeholder="今天有什么值得记住的事？"
+                          placeholder="记录当天的事情"
                           value={journalDraft ?? data.journals[date] ?? ""}
                           onChange={(e) => {
                             const value = e.target.value;
@@ -641,7 +587,7 @@ export default function App() {
                         <p className="muted text-xs">
                           {journalDraft !== null
                             ? "尚未保存，请检查浏览器存储空间。"
-                            : "自动保存 · 只属于这一天"}
+                            : "自动保存"}
                         </p>
                       </div>
                     )}
@@ -674,25 +620,6 @@ export default function App() {
                       </button>
                     </div>
                   </section>
-                  <section className="reflection-card">
-                    <div className="flex items-center gap-2 text-xs">
-                      <Leaf size={15} /> 给自己的一句话
-                    </div>
-                    <blockquote>
-                      {data.thoughts
-                        .find((t) => t.pinned)
-                        ?.body.slice(0, 150) ||
-                        "生活的改变，藏在每一天微小而坚定的行动里。"}
-                    </blockquote>
-                    <button onClick={() => setPage("thoughts")}>
-                      去思想库，沉淀更多 <ArrowUpRight size={15} />
-                    </button>
-                  </section>
-                  <p className="side-note">
-                    留白也是计划的一部分。
-                    <br />
-                    按照自己的节奏，慢慢来。
-                  </p>
                 </aside>
               </div>
             </>
@@ -701,9 +628,7 @@ export default function App() {
             <>
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">每一天，都有一点进步</div>
-                  <h1>日子里的每一步。</h1>
-                  <p className="muted">回看坚持，也为未来留一点期待。</p>
+                  <h1>日历</h1>
                 </div>
                 <button className="secondary" onClick={() => setMonth(today())}>
                   回到本月
@@ -742,11 +667,7 @@ export default function App() {
             <>
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">值得留下的想法</div>
-                  <h1>让想法，慢慢生根。</h1>
-                  <p className="muted">
-                    收藏你的原则、感悟，与一路走来的自己。
-                  </p>
+                  <h1>思想库</h1>
                 </div>
                 <button
                   className="primary"
@@ -809,8 +730,8 @@ export default function App() {
                         <Pin size={16} />
                       </button>
                     </div>
-                    <h2>{t.title || "无题"}</h2>
-                    <p className="thought-body">{t.body}</p>
+
+                    <p className="thought-body">{thoughtText(t)}</p>
                     <footer>
                       <span
                         className="muted text-xs"
@@ -852,15 +773,8 @@ export default function App() {
                   <h3>
                     {query || category !== "全部"
                       ? "没有找到对应的想法"
-                      : "留住那些照亮你的想法"}
+                      : "暂无内容"}
                   </h3>
-                  <p>一句原则、一点感悟，都值得被记住。</p>
-                  <button
-                    className="text-button"
-                    onClick={() => setThoughtEditor("new")}
-                  >
-                    写下一个想法 <Plus size={16} />
-                  </button>
                 </div>
               )}
             </>
@@ -869,9 +783,7 @@ export default function App() {
             <>
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">我的空间，我的节奏</div>
-                  <h1>让这里，更像你。</h1>
-                  <p className="muted">安心保存，自在使用。</p>
+                  <h1>设置</h1>
                 </div>
               </div>
               <div className="settings-stack">
@@ -883,7 +795,6 @@ export default function App() {
                   <div className="setting-line">
                     <div>
                       <strong>界面主题</strong>
-                      <p className="muted text-sm">让光线和心情都刚刚好。</p>
                     </div>
                     <div className="theme-options">
                       {[
@@ -1010,9 +921,6 @@ export default function App() {
               </div>
             </>
           )}
-          <footer className="page-footer">
-            <span>DAYMARK</span> 一天一点，成为自己。
-          </footer>
         </main>
       </div>
       <nav className="mobile-nav">

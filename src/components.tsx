@@ -23,6 +23,7 @@ import {
   generateDates,
   progress,
   today,
+  thoughtText,
   type Task,
   type Thought,
 } from "./model";
@@ -38,8 +39,13 @@ export function Modal({
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const el = ref.current!;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     el.showModal();
-    return () => el.close();
+    return () => {
+      el.close();
+      document.body.style.overflow = previousOverflow;
+    };
   }, []);
   return (
     <dialog
@@ -197,7 +203,7 @@ export function TaskEditor({
             autoFocus
             required
             maxLength={200}
-            placeholder="想做些什么？"
+            placeholder="输入任务名称"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -297,7 +303,7 @@ export function TaskEditor({
           <textarea
             rows={3}
             maxLength={10000}
-            placeholder="留一点提醒给自己…"
+            placeholder="输入备注"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
@@ -345,11 +351,10 @@ export function ThoughtEditor({
   onSave: (t: Thought) => boolean;
   onClose: () => void;
 }) {
-  const [title, setTitle] = useState(thought?.title || ""),
-    [body, setBody] = useState(thought?.body || ""),
+  const [body, setBody] = useState(thought ? thoughtText(thought) : ""),
     [category, setCategory] = useState(thought?.category || categories[0]);
   return (
-    <Modal title={thought ? "编辑想法" : "留下一点想法"} onClose={onClose}>
+    <Modal title={thought ? "编辑想法" : "记录想法"} onClose={onClose}>
       <form
         className="form-stack"
         onSubmit={(e) => {
@@ -358,7 +363,7 @@ export function ThoughtEditor({
           if (
             onSave({
               id: thought?.id || crypto.randomUUID(),
-              title,
+              title: "",
               body: body.trim(),
               category,
               pinned: thought?.pinned || false,
@@ -370,23 +375,14 @@ export function ThoughtEditor({
         }}
       >
         <label>
-          标题（可选）
-          <input
-            autoFocus
-            value={title}
-            maxLength={200}
-            placeholder="为这个想法起个名字"
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </label>
-        <label>
           正文
           <textarea
             required
             rows={8}
-            maxLength={50000}
+            maxLength={50202}
             value={body}
-            placeholder="那些值得记住的，写在这里。"
+            autoFocus
+            placeholder="输入内容"
             onChange={(e) => setBody(e.target.value)}
           />
         </label>

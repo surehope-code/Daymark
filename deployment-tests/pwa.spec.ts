@@ -14,22 +14,38 @@ test("GitHub Pages 子路径资源与 PWA 离线刷新", async ({
   expect(body.start_url).toBe("/Daymark/");
   for (const icon of body.icons)
     expect((await request.get("/Daymark/" + icon.src)).ok()).toBe(true);
+  await page
+    .locator("nav:visible")
+    .getByRole("button", { name: "今日", exact: true })
+    .click();
   await page.getByLabel("快速添加任务").fill("离线也能记录");
   await page.getByRole("button", { name: "添加任务", exact: true }).click();
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
   });
   await page.reload();
+  await page
+    .locator("nav:visible")
+    .getByRole("button", { name: "今日", exact: true })
+    .click();
   await expect
     .poll(() => page.evaluate(() => !!navigator.serviceWorker.controller))
     .toBe(true);
   await context.setOffline(true);
   await page.reload();
+  await page
+    .locator("nav:visible")
+    .getByRole("button", { name: "今日", exact: true })
+    .click();
   await expect(page.getByText("离线也能记录", { exact: true })).toBeVisible();
   await page
     .getByRole("button", { name: "完成：离线也能记录", exact: true })
     .click();
   await page.reload();
+  await page
+    .locator("nav:visible")
+    .getByRole("button", { name: "今日", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "撤销完成：离线也能记录", exact: true }),
   ).toBeVisible();

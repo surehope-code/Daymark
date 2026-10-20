@@ -26,8 +26,8 @@ export const taskSchema = z.object({
 });
 export const thoughtSchema = z.object({
   id,
-  title: z.string().max(200),
-  body: z.string().trim().min(1).max(50000),
+  title: z.string().max(200).default(""),
+  body: z.string().trim().min(1).max(50202),
   category: z.string().min(1).max(50),
   pinned: z.boolean(),
   createdAt: timestamp,
@@ -47,6 +47,11 @@ export const dataSchema = z
   });
 export type Task = z.infer<typeof taskSchema>;
 export type Thought = z.infer<typeof thoughtSchema>;
+// Preserve titles from older backups as the first paragraph of their content.
+export const thoughtText = (thought: Thought) =>
+  thought.title.trim()
+    ? `${thought.title.trim()}\n\n${thought.body}`
+    : thought.body;
 export type Data = z.infer<typeof dataSchema>;
 export const emptyData = (): Data => ({
   version: 1,

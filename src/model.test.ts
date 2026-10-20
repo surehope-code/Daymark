@@ -9,6 +9,8 @@ import {
   progress,
   readData,
   saveData,
+  thoughtText,
+  thoughtSchema,
 } from "./model";
 describe("批量日期", () => {
   it("生成连续 30 天，包含两端", () => {
@@ -117,4 +119,35 @@ describe("持久化与备份安全", () => {
     d.tasks = [{ ...d.tasks[0], title: "" }];
     expect(() => parseBackup(JSON.stringify(d))).toThrow();
   });
+});
+
+it("旧标题合并到正文且再次保存不会重复，兼容无标题备份", () => {
+  const legacy = {
+    id: "legacy",
+    title: "原则",
+    body: "开始行动",
+    category: "人生原则",
+    pinned: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  expect(thoughtText(legacy)).toBe("原则\n\n开始行动");
+  const updated = thoughtSchema.parse({
+    ...legacy,
+    title: "",
+    body: thoughtText(legacy),
+  });
+  expect(thoughtText(updated)).toBe("原则\n\n开始行动");
+  expect(thoughtSchema.parse({ ...legacy, title: undefined }).title).toBe("");
+  expect(
+    thoughtSchema.safeParse({
+      ...legacy,
+      title: "",
+      body: thoughtText({
+        ...legacy,
+        title: "题".repeat(200),
+        body: "文".repeat(50000),
+      }),
+    }).success,
+  ).toBe(true);
 });

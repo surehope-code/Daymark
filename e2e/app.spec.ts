@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
+  await nav(page, "今日");
 });
 async function nav(page: import("@playwright/test").Page, label: string) {
   await page
@@ -25,6 +26,7 @@ test("任务持久化、独立完成、批量30天、日历状态与撤销", asy
     .getByRole("button", { name: "完成：学习英语", exact: true })
     .click();
   await page.reload();
+  await nav(page, "今日");
   await page
     .getByLabel("选择任务日期", { exact: true })
     .filter({ visible: true })
@@ -61,15 +63,15 @@ test("快捷输入、生活记录、思想库持久化和编辑", async ({ page 
   await page.getByLabel("今日记录", { exact: true }).fill("今天迈出了第一步。");
   await nav(page, "思想库");
   await page.getByRole("button", { name: "记录想法", exact: true }).click();
-  await page.getByLabel("标题（可选）").fill("行动");
+  await expect(page.getByLabel("标题（可选）")).toHaveCount(0);
   await page.getByLabel("正文").fill("从小事开始。");
   await page.getByRole("button", { name: "保存想法" }).click();
   await page.reload();
   await nav(page, "思想库");
   await expect(page.getByText("从小事开始。")).toBeVisible();
   await page.getByRole("button", { name: "置顶", exact: true }).click();
-  await page.getByLabel("搜索思想库").fill("行动");
-  await expect(page.getByRole("heading", { name: "行动" })).toBeVisible();
+  await page.getByLabel("搜索思想库").fill("从小事");
+  await expect(page.getByText("从小事开始。", { exact: true })).toBeVisible();
   await nav(page, "今日");
   await expect(page.getByText("读十页书", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: /今日记录/ }).click();
@@ -144,27 +146,21 @@ test("损坏备份不改动数据，有效备份可恢复", async ({ page }) => 
   const original = await page.evaluate(() =>
     localStorage.getItem("daymark.data.v1"),
   );
-  await page
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "invalid.json",
-      mimeType: "application/json",
-      buffer: Buffer.from('{"version":99}'),
-    });
+  await page.locator("input[type=file]").setInputFiles({
+    name: "invalid.json",
+    mimeType: "application/json",
+    buffer: Buffer.from('{"version":99}'),
+  });
   await expect(page.getByRole("status")).toContainText("导入失败");
   expect(
     await page.evaluate(() => localStorage.getItem("daymark.data.v1")),
   ).toBe(original);
   page.once("dialog", (d) => d.accept());
-  await page
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "valid.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(
-        '{"version":1,"tasks":[],"journals":{},"thoughts":[]}',
-      ),
-    });
+  await page.locator("input[type=file]").setInputFiles({
+    name: "valid.json",
+    mimeType: "application/json",
+    buffer: Buffer.from('{"version":1,"tasks":[],"journals":{},"thoughts":[]}'),
+  });
   await expect(page.getByRole("status")).toContainText("备份已验证并导入");
   await nav(page, "今日");
   await expect(page.getByText("保留我", { exact: true })).toHaveCount(0);

@@ -3,6 +3,18 @@ test("页面视觉检查、编辑器与窄屏无溢出", async ({ page }, info) 
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
+  await expect(
+    page.getByRole("heading", { name: "日历", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("nav:visible button").first()).toHaveText("日历");
+  await page.screenshot({
+    path: `artifacts/${info.project.name}-calendar.png`,
+    fullPage: true,
+  });
+  await page
+    .locator("nav:visible")
+    .getByRole("button", { name: "今日", exact: true })
+    .click();
   for (const title of [
     "阅读二十分钟，留一点时间给自己",
     "整理这周的计划",
@@ -23,6 +35,25 @@ test("页面视觉检查、编辑器与窄屏无溢出", async ({ page }, info) 
   });
   await page.getByRole("button", { name: "新建任务", exact: true }).click();
   await page.getByLabel("安排方式").selectOption("weekly");
+  if (info.project.name === "mobile")
+    await page.setViewportSize({ width: 320, height: 700 });
+  for (const mode of ["single", "range", "multiple", "weekly"]) {
+    await page.getByLabel("安排方式").selectOption(mode);
+    expect(
+      await page
+        .locator("dialog")
+        .evaluate((el) => el.scrollWidth <= el.clientWidth),
+    ).toBe(true);
+    expect(
+      await page
+        .locator("dialog")
+        .evaluate(
+          (el) =>
+            el.getBoundingClientRect().left >= 0 &&
+            el.getBoundingClientRect().right <= innerWidth,
+        ),
+    ).toBe(true);
+  }
   await page.screenshot({
     path: `artifacts/${info.project.name}-editor.png`,
     fullPage: true,
