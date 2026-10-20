@@ -377,6 +377,7 @@ export function ThoughtEditor({
         <label>
           正文
           <textarea
+            aria-label="正文"
             required
             rows={8}
             maxLength={50202}

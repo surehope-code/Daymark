@@ -890,39 +890,85 @@ blockquote {
 }
 .thought-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  max-width: 900px;
 }
 .thought-card {
-  padding: 23px;
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  padding: 15px 56px 15px 20px;
+  min-width: 0;
+  border-radius: 9px;
+  --category-color: #8b929b;
 }
-.thought-card h2 {
-  margin: 19px 0 13px;
-  overflow-wrap: anywhere;
+.category-line {
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--category-color);
+}
+.thought-card[data-category="人生原则"] {
+  --category-color: #5d856b;
+}
+.thought-card[data-category="个人信条"] {
+  --category-color: #6b87b2;
+}
+.thought-card[data-category="生活感悟"] {
+  --category-color: #bd9558;
+}
+.thought-card[data-category="自我反思"] {
+  --category-color: #9b7caf;
 }
 .thought-body {
-  margin-top: 18px;
+  margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 14px;
-  line-height: 2;
-  color: var(--muted);
-  max-height: 330px;
-  overflow: auto;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.75;
+  color: var(--text);
 }
-.thought-card footer {
+.thought-menu {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+}
+.thought-menu summary {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 7px;
+}
+.thought-menu summary:hover {
+  background: var(--hover);
+}
+.thought-menu .menu-popover {
+  top: 42px;
+  min-width: 170px;
+}
+.thought-menu .menu-popover button {
+  min-height: 44px;
+}
+.thought-details {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid var(--line);
-  padding-top: 12px;
-  margin-top: 25px;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px 8px 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: var(--muted);
 }
-.pinned {
+.thought-details small {
+  font-size: 10px;
+}
+.pin-indicator {
   color: var(--green);
-  background: var(--soft);
 }
 .settings-stack {
   max-width: 850px;
@@ -1416,7 +1462,7 @@ dialog::backdrop {
     max-width: 110px;
   }
   .thought-card {
-    padding: 20px;
+    padding: 13px 54px 13px 17px;
   }
   .settings-panel {
     padding: 19px;

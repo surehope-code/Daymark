@@ -705,51 +705,71 @@ export default function App() {
               </div>
               <div className="thought-grid">
                 {thoughts.map((t) => (
-                  <article className="panel thought-card" key={t.id}>
-                    <div className="flex justify-between items-center">
-                      <span className="tag">{t.category}</span>
-                      <button
-                        className={`icon ${t.pinned ? "pinned" : ""}`}
-                        aria-label={t.pinned ? "取消置顶" : "置顶"}
-                        aria-pressed={t.pinned}
-                        onClick={() =>
-                          commit((d) => ({
-                            ...d,
-                            thoughts: d.thoughts.map((x) =>
-                              x.id === t.id
-                                ? {
-                                    ...x,
-                                    pinned: !x.pinned,
-                                    updatedAt: new Date().toISOString(),
-                                  }
-                                : x,
-                            ),
-                          }))
-                        }
-                      >
-                        <Pin size={16} />
-                      </button>
-                    </div>
-
+                  <article
+                    className="panel thought-card"
+                    data-category={t.category}
+                    key={t.id}
+                  >
+                    <span
+                      className="category-line"
+                      title={t.category}
+                      role="img"
+                      aria-label={"分类：" + t.category}
+                    />
                     <p className="thought-body">{thoughtText(t)}</p>
-                    <footer>
-                      <span
-                        className="muted text-xs"
-                        title={`创建：${new Date(t.createdAt).toLocaleString("zh-CN")}；编辑：${new Date(t.updatedAt).toLocaleString("zh-CN")}`}
+                    <details
+                      className="task-menu thought-menu"
+                      name="task-actions"
+                      onClick={(event) => {
+                        if ((event.target as Element).closest("button"))
+                          event.currentTarget.open = false;
+                      }}
+                    >
+                      <summary
+                        aria-label={
+                          t.pinned ? "想法操作（已置顶）" : "想法操作"
+                        }
+                        title="想法操作"
                       >
-                        {format(parseISO(t.updatedAt), "yyyy.MM.dd")} · 编辑
-                      </span>
-                      <div className="flex">
-                        <button
-                          className="icon"
-                          aria-label="编辑想法"
-                          onClick={() => setThoughtEditor(t)}
-                        >
-                          <Edit3 size={16} />
+                        {t.pinned ? (
+                          <Pin size={16} className="pin-indicator" />
+                        ) : (
+                          <MoreHorizontal size={19} />
+                        )}
+                      </summary>
+                      <div className="menu-popover">
+                        <div className="thought-details">
+                          <span>{t.category}</span>
+                          <small>
+                            编辑于 {format(parseISO(t.updatedAt), "yyyy.MM.dd")}
+                          </small>
+                        </div>
+                        <button onClick={() => setThoughtEditor(t)}>
+                          <Edit3 size={15} />
+                          编辑想法
                         </button>
                         <button
-                          className="icon danger"
-                          aria-label="删除想法"
+                          aria-pressed={t.pinned}
+                          onClick={() =>
+                            commit((d) => ({
+                              ...d,
+                              thoughts: d.thoughts.map((x) =>
+                                x.id === t.id
+                                  ? {
+                                      ...x,
+                                      pinned: !x.pinned,
+                                      updatedAt: new Date().toISOString(),
+                                    }
+                                  : x,
+                              ),
+                            }))
+                          }
+                        >
+                          <Pin size={15} />
+                          {t.pinned ? "取消置顶" : "置顶"}
+                        </button>
+                        <button
+                          className="danger"
                           onClick={() => {
                             if (confirm("确定删除这条想法？"))
                               commit((d) => ({
@@ -760,10 +780,11 @@ export default function App() {
                               }));
                           }}
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={15} />
+                          删除想法
                         </button>
                       </div>
-                    </footer>
+                    </details>
                   </article>
                 ))}
               </div>

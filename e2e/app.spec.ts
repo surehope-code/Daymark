@@ -69,6 +69,7 @@ test("快捷输入、生活记录、思想库持久化和编辑", async ({ page 
   await page.reload();
   await nav(page, "思想库");
   await expect(page.getByText("从小事开始。")).toBeVisible();
+  await page.getByLabel("想法操作", { exact: true }).click();
   await page.getByRole("button", { name: "置顶", exact: true }).click();
   await page.getByLabel("搜索思想库").fill("从小事");
   await expect(page.getByText("从小事开始。", { exact: true })).toBeVisible();
